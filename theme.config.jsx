@@ -2,6 +2,11 @@ import React from "react";
 import { useRouter } from "next/router";
 
 const config = {
+  useNextSeoProps() {
+    return {
+      titleTemplate: `%s - 기억하기 위한 기록`,
+    };
+  },
   logo: (
     <>
       <svg
