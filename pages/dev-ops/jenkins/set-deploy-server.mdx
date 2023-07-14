@@ -1,0 +1,62 @@
+# 배포서버 설정
+
+배포를 위해 `jenkins`가 배포서버에 접근하기 위한 `ssh-key`를 등록해 주자.
+
+### 배포서버 접속
+
+배포서버에 접속을 해야한다.
+배포서버가 `aws`라면 `.pem` 파일을 다운받아서 로컬에서 접속하거나,
+다운로드 받은 `.pem` 파일을 개발서버에 복사하여 `aws console`에서 제공해주는 cli 명령어를 입력하여 접속할 수 있다.
+
+배포서버에 기본적으로 아래의 작업부터 해준다.
+
+- [`docker` 설치](https://gtengine.vercel.app/dev-ops/docker/install-docker)
+- aws Container Registry 생성
+
+### aws configure
+
+배포서버의 역할은 컨테이너 레지스트리에 업로드 되어있는 `docker image`를 내려받아 실행시키는 것이다.
+그러기 위해서는 `aws ECR`에 접근이 가능해야 하기 때문에 `aws` 인증이 필요하다.
+
+#### awscli 설치
+
+```bash
+sudo apt install awscli
+```
+
+#### aws 인증키 등록
+
+aws 계정에 발급한 `access_key` 정보를 입력해 준다.
+
+```bash
+aws configure
+```
+
+```
+AWS Access Key ID [None]: 본인 계정의 Access_key_ID
+AWS Secret Access Key [None]: Access_key_ID에 해당하는 Secret_Key
+Default region name [None]: aws VPC region (예: ap-northeast-2)
+Default output format [None]: json
+```
+
+성공적으로 인증이 완료되면 다음 경로를 통해 본인의 Access_Key와 Secret_Key가 등록된 것을 확인할 수 있다.
+
+```bash
+cat ~/.aws/credentials
+```
+
+다음 경로에는 region과 output을 확인할 수 있다.
+
+```bash
+cat ~/.aws/config
+```
+
+그 후, aws ECR에 정상적으로 접속이 되는지를 확인한다.
+접속 명령어는 `aws ECR`에서 각 repository의 **View Push Command**를 클릭하면 제공해 준다.
+
+### jenkins에 ssh-key 등록
+
+`ssh-key`를 `jenkins`에 등록하는 과정은 [개발서버 ssh-key 등록](https://gtengine.vercel.app/dev-ops/jenkins/register-ssh-key#%EA%B0%9C%EB%B0%9C%EC%84%9C%EB%B2%84-ssh-key-%EB%93%B1%EB%A1%9D)을 참고하여 진행하면 된다.
+마지막 `ssh-key`를 입력하는 부분만 서버 내부에서 생성한 `ssh-key`가 아닌 로컬이나 개발서버에 다운받은 배포서버의 `.pem` 파일의 내용을 복사해서 붙여주는 것으로 바꿔주면 된다.
+
+끝.

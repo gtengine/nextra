@@ -1,0 +1,7 @@
+{
+  "install-jenkins": "Jenkins 설치",
+  "install-plugins": "플러그인 설치",
+  "register-ssh-key": "인증키 등록",
+  "set-deploy-server": "배포서버 설정",
+  "create-pipeline": "파이프라인 생성"
+}

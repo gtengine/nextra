@@ -1,0 +1,125 @@
+# Python 원하는 버전 설치 및 사용
+
+현재 기준 Ubuntu에는 python 3.8이 기본으로 설치되어 있다. 하지만 프로젝트마다 python의 버전을 다르게 사용해야하는 일이 발생하기 때문에 원하는 버전의 python을 설치하는 방법을 알아본다.
+
+## Ubuntu PPA 란?
+
+import { Callout } from "nextra-theme-docs";
+
+<Callout type="info">
+  PPA (Personal Package Archive) : 개인 패키지 저장소라는 뜻으로, 우분투의 공식
+  패키지 저장소에는 없는 서드 파티 소프트웨어를 위한 개인용 소프트웨어 저장소.
+</Callout>
+
+기본적으로 리눅스는 업데이트를 각 소프트웨어가 직접 하는 것이 아니라 패키지 저장소를 통하여 업데이트를 한다.
+
+하지만 ubuntu 공식 패키지 저장소에서는 최신 버전이 담겨있지 않는 경우가 있기 때문에 업데이트 및 설치를 하기 위해서 PPA를 이용한다.
+
+## PPA에서 원하는 패키지 검색
+
+아래의 링크를 통해 Ubuntu PPA로 이동하여 원하는 패키지가 있는지 검색할 수 있다.
+
+import Link from "next/link";
+
+<Callout>
+  <Link href="https://launchpad.net/ubuntu/+ppas" passHref legacyBehavior>
+    <a target="_blank">Ubuntu PPA</a>
+  </Link>
+</Callout>
+
+python 3.10을 설치할 것이기 때문에, 검색창에 'python' 또는 'python 3.10'이라고 검색하면 "New Python Versions"라는 PPA name이 있다. 클릭하여 들어가면 해당 ppa에 대한 정보를 확인할 수 있다.
+
+## Ubuntu에 PPA 및 Python 설치
+
+설치하고 싶은 패키지의 버전을 제공하는 ppa를 찾았다면 해당 ppa repository를 설치해주자.
+
+import { Steps } from "nextra-theme-docs";
+
+<Steps>
+
+### 필요한 package 설치
+
+repository를 설치하기 위해서는 특정 명령어를 사용해야 하는데, 이 명령어를 사용하기 위해서는 **software-properties-common** 이라는 패키지를 사전에 설치해 주어야한다.
+
+```bash
+sudo apt-get install -y software-properties-common
+```
+
+### add-apt-repository
+
+ppa repository를 ubuntu에 설치한다.
+
+```bash
+sudo add-apt-repository ppa:deadsnakes/ppa
+```
+
+### apt update
+
+apt를 업데이트한다.
+
+```bash
+sudo apt update
+```
+
+### python install
+
+원하는 버전의 python을 설치한다.
+
+```bash
+sudo apt install python3.10
+```
+
+</Steps>
+
+## Ubuntu의 Python 버전 번경
+
+Ubuntu에서는 python3.8이 기본으로 설치되어 있다고 했었다. 다른 버전이더라도 기본으로 설정되어 있는 python 버전을 새로 설치한 버전으로 변경해 주어야한다.
+
+그 전에 먼저 현재 설치되어 있는 python의 버전과 경로를 알아보자. `python` 명령어가 안된다면 `python3`로 입력하자.
+
+```bash
+python --version
+```
+
+python은 보통 `/usr/bin/`에 설치되어 있다. `which` 명령어를 통해 확인할 수 있다.
+
+```bash
+which 'python --version'
+```
+
+다음 명령어를 통해 기본으로 등록되어 있는 python을 확인 및 변경할 수 있다. 등록된 python이 없다면 에러 메세지가 출력된다.
+
+```bash
+sudo update-alternatives --config python
+```
+
+이제 python 버전들을 등록해보자. python을 등록하는 명령어는 아래와 같이 작성하면 된다.
+
+```bash
+sudo update-alternatives --install '심볼릭 링크 경로' python 'version 경로' '숫자'
+```
+
+따라서 나의 경우는 python3.8과 python3.10 두 버전을 등록했다.
+
+```bash
+sudo update-alternatives --install /usr/bin/python3 python /usr/bin/python3.10 1
+sudo update-alternatives --install /usr/bin/python3 python /usr/bin/python3.8 2
+```
+
+## Python 등록 해제 및 PPA 제거
+
+- python 등록 해제
+
+```bash
+sudo update-alternatives --remove python 'version 경로'
+```
+
+- ppa 제거
+
+```bash
+sudo add-apt-repository --remove '저장소 이름'
+```
+
+자 이제 열심히 python 코딩을 하면된다.
+
+끝.

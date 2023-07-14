@@ -1,0 +1,63 @@
+.container {
+  width: 100%;
+  padding: 1% 4.3%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+  fill: white;
+  font-weight: bold;
+}
+
+.titleContainer:hover {
+  color: black;
+  fill: black;
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+}
+
+.navContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  fill: white;
+}
+
+.icon:hover {
+  fill: black;
+}
+
+.navText {
+  color: white;
+  margin-right: 16px;
+}
+
+.navText:hover {
+  color: black;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 640px) {
+  .navContainer {
+    display: none;
+  }
+}

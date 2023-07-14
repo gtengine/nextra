@@ -1,0 +1,102 @@
+# 스크린샷 캡쳐 및 저장
+
+앱에서 이미지에 어떤 효과를 주거나 스티커를 붙이는 등 이미지를 꾸미는 작업이 끝나면 그 이미지를 사용하기 위해서는 미디어 라이브러리에 저장을 해야한다.
+사용자가 작업한 이미지를 스크린샷을 찍어 미디어 라이브러리에 저장하는 기능을 구현해 보자.
+
+## 필요 라이브러리 설치
+
+우선 필요한 라이브러리들을 설치해야한다.
+
+- 스크린샷을 찍기 위해서는 `react-native-view-shot`
+- 미디어 라이브러리에 저장하기 위해서는 `expo-media-library`
+
+```bash
+npx expo install react-native-view-shot expo-media-library
+```
+
+[_React Native Directory_](https://reactnative.directory/)에서 더 많은 서드 파티 라이브러리들을 찾아볼 수 있다.
+
+## 권한 요청
+
+미디어 라이브러리는 사용자의 민감한 정보가 담겨있는 곳이다. 이러한 민감한 정보에 대한 접근이 필요한 기능을 구현할 때에는 먼저 사용자의 권한을 요청해야 한다.
+
+`expo-media-library`는 **접근 권한을 가지고 있는지에 대한 상태**를 반환하는 `usePermissions()`과,
+접근 권한이 허용되지 않은 상태일 경우 **미디어 라이브러리에 대한 접근을 요청**하는 `requestPermission()` 메서드를 제공한다.
+
+그리고 처음 앱을 설치하고 실행한 상태, 즉 권한이 허용도 거부도 아닌 상태의 값은 `null`이다.
+
+```js {1,4-7}
+import * as MediaLibrary from "expo-media-library";
+
+export default () => {
+  const [status, requestPermission] = MediaLibrary.usePermissions();
+  if (status === null) {
+    requestPermission();
+  }
+  return;
+};
+```
+
+권한이 부여되면 상태 `status` 값이 `granted`로 바뀐다.
+
+## 스크린샷을 찍을 참조 값 지정
+
+`react-native-view-shot`는 `<View>` 컴포넌트를 이미지로 캡쳐할 수 있는 기능을 제공한다. 따라서 스크린샷을 찍을 범위를 `<View>`로 감싸주고
+`react`의 `useRef()`를 사용하여 스크린샷을 찍을 범위를 지정할 참조 값을 만들어 주자.
+
+```js {1,4,7,9}
+import { useRef } from "react";
+
+export default () => {
+  const imageRef = useRef();
+
+  return (
+    <View ref={imageRef} callapsable={false}>
+      <Image source={"./assets/images/test.jpg"} />
+    </View>
+  );
+};
+```
+
+> callapsable: boolean
+
+- 사용자의 UI에서 `<View>`범위를 접을 수 있게 하는 기능.
+
+## 스크린샷 캡쳐 및 저장
+
+- `react-native-view-shot`의 `captureRef()`는 참조된 `<View>` 범위를 스크린샷을 캡쳐하고 해당 이미지 파일의 URI를 반환한다.
+- `captureRef()`는 스크린샷을 캡쳐하려는 영역의 `width`와 `height`를 인수로 받을 수 있다. 사용 가능한 옵션에 대해 더 많은 정보는 [captureRef infomation](https://github.com/gre/react-native-view-shot#capturerefview-options-lower-level-imperative-api)을 참고.
+- 반환받은 URI를 `MediaLibrary.saveToLibraryAsync()`에 전달하여 미디어 라이브러리에 캡쳐된 스크린샷을 저장한다.
+
+```js {1,5-15,23}
+import { captureRef } from "react-native-view-shot";
+
+export default () => {
+  const [coment, setComent] = useState()
+  const onSaveImageAsync = async () => {
+    try {
+      const localUri = await captureRef(imageRef, { height: 440, quality: 1 });
+      await MediaLibrary.saveToLibraryAsync(localUri);
+      if (localUri) {
+        alert("Saved!");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  return (
+    <View>
+      <View ref={imageRef} callapsable={false}>
+        <Image source={"./assets/images/test.jpg"} />
+        {coment && <Text>{coment}<Text>}
+      </View>
+      <Pressable onPress={onSaveImageAsync}>
+        <Text>Save</Text>
+      </Pressable>
+    </View>
+  );
+};
+```
+
+끝.

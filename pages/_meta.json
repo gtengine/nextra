@@ -1,0 +1,28 @@
+{
+  "index": {
+    "title": "Home",
+    "type": "page",
+    "theme": {
+      "layout": "raw",
+      "footer": false,
+      "navbar": false
+    }
+  },
+  "documents": "Documents",
+  "front-end": {
+    "title": "Front-end",
+    "type": "page"
+  },
+  "back-end": {
+    "title": "Back-end",
+    "type": "page"
+  },
+  "dev-ops": {
+    "title": "Dev-Ops",
+    "type": "page"
+  },
+  "ai": {
+    "title": "AI",
+    "type": "page"
+  }
+}

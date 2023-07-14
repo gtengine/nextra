@@ -1,0 +1,327 @@
+# 사용자 제스처에 따른 state 업데이트
+
+제스처는 앱의 더 직관적이고 편한 사용자 경험을 제공할 수 있는 기능이다.
+사용자가 화면을 탭하거나, 드래그하거나, 회전시키는 등의 제스처를 인식하고 그에 따른 변화를 준다면 사용자와 훨씬 더 많은 상호작용을 하는 앱을 구현할 수 있다.
+이 글에서는 더블 탭(연속 터치)과 드래그를 활용하는 방법을 알아보겠다.
+
+## 라이브러리 설치 및 설정
+
+expo에서 제스처를 감지하고 탐지하기 위해서는 `react-native-gesture-handler` 라이브러리가 필요하다.
+또한 이에 대한 애니메이션 효과를 적용하기 위해서는 `react-native-reanimated` 라이브러리를 사용하면 된다.
+
+```bash
+npx expo install react-native-gesture-handler react-native-reanimated
+```
+
+`react-native-reanimated` 라이브러리 사용 설정을 하기 위해서는 플러그인도 필요한데, 설치해 주자.
+
+```bash
+npm install -D @babel/plugin-proposal-export-namespace-from
+```
+
+라이브러리들을 모두 설치했다면, 프로젝트 루트 경로의 `babel.config.js` 파일에 방금 설치한 플러그인 관련 코드를 추가해 주자.
+
+```js {5-8}
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ["babel-preset-expo"],
+    plugins: [
+      "@babel/plugin-proposal-export-namespace-from",
+      "react-native-reanimated/plugin",
+    ],
+  };
+};
+```
+
+제스처를 감지 및 탐지하기 위해서는 `react-native-gesture-handler`의 `<GestureHandlerRootView>`를 스크린의 루트 컴포넌트로 위치시키면 된다.
+
+```js filename="App.js"
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+export default () => {
+  return <GestureHandlerRootView>{/* ... */}</GestureHandlerRootView>;
+};
+```
+
+## 제스처에 따른 애니메이션 효과
+
+import { Steps } from "nextra-theme-docs";
+
+<Steps>
+
+### Animated component 생성
+
+제스처에 따른 애니메이션 효과를 주기 위해서는 **animated component**가 필요한데, `react-native-reanimated`의 `Animated`를 통해서 생성해준다.
+
+생성하는 방법은 `Animated`의 `createdAnimatedComponent()` 메소드에 애니메이션 효과를 적용할 컴포넌트를 인자로 넣어준다.
+
+```js
+import Animated from "react-native-reanimated";
+import { Image } from "react-native";
+
+const AnimatedImage = Animated.createdAnimatedComponent(Image);
+```
+
+생성한 **animated component**를 사용하여 UI를 그려주자.
+
+```js {12-16}
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated from "react-native-reanimated";
+import { Image } from "react-native";
+
+const AnimatedImage = Animated.createdAnimatedComponent(Image);
+
+export default () => {
+  return (
+    <GestureHandlerRootView
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+    >
+      <AnimatedImage
+        source={"./assets/images/test.jpg"}
+        resizeMode="contain"
+        style={{ width: 40, height: 40 }}
+      />
+    </GestureHandlerRootView>
+  );
+};
+```
+
+### 제스처 적용하기
+
+이제 제스처를 감지하여 state의 값을 변경해 주자. 이 글에서 구현할 것은,
+
+- 더블 탭으로 이미지 사이즈를 두 배로 만들기.
+- 드래그로 이미지 위치 변경.
+
+#### Tap 제스처 적용
+
+`tap` 제스처를 감지하기 위해서는 `react-native-gesture-handler`의 `<TapGestureHandler>`를 사용한다.
+또한 이에 따른 state 변경도 해줘야 하기 때문에 그에 필요한 `reanimated`의 hooks도 같이 불러오자.
+
+```js
+import { TapGestureHandler } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  useAnimatedGestureHandler,
+  withSpring,
+} from "react-native-reanimated";
+```
+
+그리고 이미지 사이즈 값을 조정할 변수가 필요한데, 불러온 hooks 중 `useSharedValue()`를 사용하여 생성해 준다.
+초깃값으로 설정할 값을 인자로 넣어주면 이 값을 기반으로 애니메이션 효과를 실행할 수 있다.
+
+```js
+const scaleImage = useSharedValue(40);
+```
+
+생성한 변수의 값은 `scaleImage.value`로 접근할 수 있다.
+이제 더블 탭을 했을 때, 이미지의 사이즈를 두 배로 만들어주는 함수를 만든다.
+제스처를 통해 상태가 변하는 함수는 `useAnimatedGestureHandler()`를 통해서 생성한다.
+
+```js
+const onDoubleTap = useAnimatedGestureHandler({
+  onActive: () => {
+    if (scaleImage.value) {
+      scaleImage.value = scaleImage.value * 2;
+    }
+  },
+});
+```
+
+마지막으로 이미지 사이즈가 변할 때, 자연스러운 효과를 주기 위해 transition을 걸어줄 것이다.
+transition을 걸어줄 때에는 `spring` 기반 애니메이션을 사용하는 것이 스프링의 현실 물리학에 기반해 구현되어 있기 때문에 더 생동감을 줄 수 있다고 한다. 해보자.
+스타일 관련 변수 생성에 `useAnimatedStyle()`를 사용하고 사이즈 값에 `withSpring()`을 사용한다.
+
+```js
+const imageStyle = useAnimatedStyle(() => {
+  return {
+    width: withSpring(scaleImage.value),
+    height: withSpring(scaleImage.value),
+  };
+});
+```
+
+이제 `<TapGestureHandler>`로 감싸주고 생성한 것들을 넘겨주면 tap 적용은 완료.
+
+```js {22,26,28}
+const AnimatedImage = Animated.createdAnimatedComponent(Image);
+
+export default () => {
+  const scaleImage = useSharedValue(40);
+  const onDoubleTap = useAnimatedGestureHandler({
+    onActive: () => {
+      if (scaleImage.value) {
+        scaleImage.value = scaleImage.value * 2;
+      }
+    },
+  });
+  const imageStyle = useAnimatedStyle(() => {
+    return {
+      width: withSpring(scaleImage.value),
+      height: withSpring(scaleImage.value),
+    };
+  });
+  return (
+    <GestureHandlerRootView
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+    >
+      <TapGestureHandler onGestureEvent={onDoubleTap} numberOfTaps={2}>
+        <AnimatedImage
+          source={"./assets/images/test.jpg"}
+          resizeMode="contain"
+          style={[imageStyle, { width: 40, height: 40 }]}
+        />
+      </TapGestureHandler>
+    </GestureHandlerRootView>
+  );
+};
+```
+
+> onGestureEvent
+
+- 제스처를 감지하여 핸들러를 실행
+
+> numberOfTaps
+
+- 핸들러를 실행시키기 위해 필요한 tap 수
+
+#### Pan 제스처 적용
+
+`pan` 제스처는 드래그를 인식하고 움직임을 추적한다.
+이를 적용하기 위해서는 `react-native-gesture-handler`의 `<PanGestureHandler>`를 사용한다.
+
+```js
+import { PanGestureHandler } from "react-native-gesture-handler";
+```
+
+`animated component`도 하나 생성해 주자. 이미지를 감싸줄 `<View>`로 생성한다.
+생성 후, `<TapGestureHandler>`의 상위에 위치시킨다.
+
+```js {2,9,17}
+const AnimatedImage = Animated.createdAnimatedComponent(Image);
+const AnimatedView = Animated.createAnimatedComponent(View);
+
+export default () => {
+  return (
+    <GestureHandlerRootView
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+    >
+      <AnimatedView>
+        <TapGestureHandler onGestureEvent={onDoubleTap} numberOfTaps={2}>
+          <AnimatedImage
+            source={"./assets/images/test.jpg"}
+            resizeMode="contain"
+            style={[imageStyle, { width: 40, height: 40 }]}
+          />
+        </TapGestureHandler>
+      </AnimatedView>
+    </GestureHandlerRootView>
+  );
+};
+```
+
+이동하려면 위치 값이 필요하다. 따라서 위치 값을 가지고 있을 변수가 필요하다. 만들어 주자.
+x축의 값을 가지는 변수와 y축의 값을 가지는 변수를 생성한다.
+위에서 제스처에 따라 값이 변하는 변수는 `useSharedValue()`를 통해 만든다고 했다.
+
+```js
+const translateX = useSharedValue(0);
+const translateY = useSharedValue(0);
+```
+
+초깃값을 0으로 입력했는데 이는 화면의 (0, 0) 위치에서 시작한다는 것이 아니라, 이미지가 처음 배치된 위치를 시작점으로 간주한다는 의미이다.
+
+핸들러를 생성해 주자. 마찬가지로 위에서 핸들러를 생성할 때는 `useAnimatedGestureHandler()`를 사용한다고 했다.
+
+```js
+const onDrag = useAnimatedGestureHandler({
+  onStart: (event, context) => {
+    context.translateX = translateX.value;
+    context.translateY = translateY.value;
+  },
+  onActive: (event, context) => {
+    translateX.value = event.translationX + context.translateX;
+    translateY.value = event.translationY + context.translateY;
+  },
+});
+```
+
+> onStart
+
+- 제스처가 시작되거나 초기 위치에 있을 때 동작할 callback 함수
+
+> onActive
+
+- 제스처가 활성화되어 움직일 때 동작할 callback 함수
+
+두 메소드 모두 `event`와 `context`를 인자로 받는다.
+
+- `onStart`의 경우 `translateX`와 `translateY`의 초기 값을 저장하기 위해 `context`를 사용했다.
+- `onActive`의 경우 `event`를 사용하여 `pan` 제스처의 현재 위치 값을 받아오고, `context`를 사용하여 저장되어 있는 `translateX`와 `translateY` 값을 받아온다.
+
+`useAnimatedStyle()`을 통해 위치 값을 변경할 변수를 만들어 주자.
+`<AnimatedView>`는 각 `{translateX : value}`와 `{translateY: value}`이 배열로 구성된 `transform` 속성이 필요하다.
+
+```js
+const containerStyle = useAnimatedStyle(() => {
+  return {
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
+  };
+});
+```
+
+생성한 값들을 각자 필요한 자리에 배치해주고 `<PanGestureHandler>`로 감싸주면 완료.
+
+```js {29,30,39}
+const AnimatedImage = Animated.createdAnimatedComponent(Image);
+const AnimatedView = Animated.createAnimatedComponent(View);
+
+export default () => {
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const onDrag = useAnimatedGestureHandler({
+    onStart: (event, context) => {
+      context.translateX = translateX.value;
+      context.translateY = translateY.value;
+    },
+    onActive: (event, context) => {
+      translateX.value = event.translationX + context.translateX;
+      translateY.value = event.translationY + context.translateY;
+    },
+  });
+  const containerStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+      ],
+    };
+  });
+  return (
+    <GestureHandlerRootView
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+    >
+      <PanGestureHandler onGestureEvent={onDrag}>
+        <AnimatedView style={containerStyle}>
+          <TapGestureHandler onGestureEvent={onDoubleTap} numberOfTaps={2}>
+            <AnimatedImage
+              source={"./assets/images/test.jpg"}
+              resizeMode="contain"
+              style={[imageStyle, { width: 40, height: 40 }]}
+            />
+          </TapGestureHandler>
+        </AnimatedView>
+      </PanGestureHandler>
+    </GestureHandlerRootView>
+  );
+};
+```
+
+</Steps>
+
+끝.

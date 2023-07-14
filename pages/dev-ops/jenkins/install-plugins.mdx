@@ -1,0 +1,97 @@
+# Jenkins 플러그인 설치
+
+`docker`로 `jenkins` 이미지를 실행시켜 계정 생성까지 했다면, 본인에게 필요한 플러그인들을 설치해 보자.
+
+## Jenkins 실행 및 로그인
+
+실행 코드는 이 전 초기 설정해 줄 때와 같다. 터미널에 입력해 준다.
+
+```sh
+docker run --name jenkins -d -p 8080:8080 -v ~/jenkins:/var/jenkins_home -u root jenkins/jenkins:latest
+```
+
+실행 시킨 뒤, `server_public_ip:8080` 포트로 접속해보면 로그인 화면이 나타난다.
+
+import Image from "components/image/image.tsx"
+
+<Image src={"/jenkins/jenkins-login.png"} width={800} height={340} />
+
+초기 실행 단계에서 만들어준 유저 계정을 입력하고 로그인한다.
+
+## Timezone 설정
+
+플러그인 설치 전에 `timezone` 설정을 먼저 해주자.
+
+- 메인 화면의 좌측 사이드바에서 **사람** 탭을 클릭한다.
+- 본인이 생성한 계정이 보일 것이다. 클릭해서 해당 계정 페이지로 이동한다.
+
+<Image src={"/jenkins/jenkins-user.png"} width={800} height={340} />
+
+해당 계정을 누르면 사이드바의 메뉴가 바뀐다.
+
+- **설정** 탭으로 이동한다.
+
+<Image src={"/jenkins/jenkins-user2.png"} width={800} height={340} />
+
+설정 탭에서 화면을 맨 밑으로 내리면 **User Defined Time Zone** 항목이 있다.
+
+- 본인의 지역에 해당하는 timezone으로 선택하고 **Save** 버튼을 눌러 저장해 준다.
+
+<Image src={"/jenkins/jenkins-timezone.png"} width={800} height={340} />
+
+## 플러그인 설치
+
+CI / CD를 하기 위해서 파이프라인을 구축해 줘야 한다.
+그리고 이 파이프라인대로 작업이 실행되도록 하기 위해서 필요한 플러그인들을 설치해 줘야 한다.
+
+이번 작업에서 필요한 플러그인들은 어떤 것들이 있는지 알아보자.
+
+내가 이번 작업에서 사용한 자원들은 다음과 같다.
+
+- AWS EC2 : 개발 서버 1대, 배포 서버 1대
+- Git : 소스 코드 관리
+- Docker : 이미지 빌드 및 실행
+- AWS ECR : 빌드된 docker 이미지 저장
+
+위의 자원들에 관련하여 설치해야 하는 플러그인들은 다음과 같다.
+
+- job DSL
+- Pipeline: Deprecated Groovy Libraries
+- Pipeline: Declarative Agent API
+- Pipeline Utility Steps
+- Build Pipeline
+- Docker
+- Docker Commons
+- Docker Pipeline
+- Docker API
+- docker-build-step
+- GitHib Integration
+- GitHub Authentication
+- Pipeline: GitHub
+- Gradle Repo
+- CloudBess AWS Credentials
+- Pipeline: AWS Steps
+- Amazon ECR
+- AWS Global Configuration
+- SSH
+- SSH Agent
+- Publish Over SSH
+- SSH Pipeline Steps
+
+플러그인들을 설치해 주려면 우선 플러그인 관리 페이지로 이동해야 한다.
+
+- **메인화면 - Jenkins 관리 - Plugins**
+
+<Image src={"/jenkins/jenkins-plugin.png"} width={800} height={340} />
+
+플러그인 관리 페이지로 이동한 후, 플러그인 설치는 **Available Plugins** 탭에서 필요한 플러그인들을 검색하여 체크해 준다.
+
+<Image src={"/jenkins/jenkins-available-plugins.png"} width={800} height={340} />
+
+필요한 플러그인들을 모두 체크한 후, 하단의 버튼을 클릭하면 설치 화면으로 전환되며 플러그인들을 설치하기 시작한다.
+
+<Image src={"/jenkins/jenkins-plugins-download.png"} width={800} height={340} />
+
+설치가 모두 끝나면 하단의 **메인 페이지로 돌아가기** 또는 **재시작** 을 클릭하여 설치된 플러그인들을 적용한다.
+
+끝.

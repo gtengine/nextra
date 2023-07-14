@@ -1,0 +1,57 @@
+# 파이프라인 생성
+
+CI / CD를 행할 프로젝트에 대한 파이프라인을 만들어 주어야 한다.
+
+## 파이프라인 등록
+
+- **메인화면 - 새로운 Item**
+
+import Image from "components/image/image.tsx";
+
+<Image src={"/jenkins/create-pipeline-1.png"} width={800} height={340} />
+
+생성할 파이프라인의 이름을 정해주고, 파이프라인을 선택한 후 아래의 **OK**를 클릭하여 다음 단계로 진행한다.
+
+<Image src={"/jenkins/select-pipeline.png"} width={800} height={340} />
+
+CI / CD를 위한 설정을 해주는 페이지가 나오는데, 이 글에서는 페이지 하단에 있는 **Pipeline** 부분만을 입력하여 다룰 것이다.
+위에 있는 항목들은 그냥 빈칸으로 둔다.
+
+<Image src={"/jenkins/pipeline-configure.png"} width={800} height={340} />
+
+- Definition: github repository를 통해 docker image를 빌드할 것이기 때문에 **Pipeline script from SCM** 선택
+- SCM: **Git** 선택
+- Repository URL: 배포할 프로젝트의 **github repository URL** 입력
+- Credentials: select box를 클릭하여 본인이 등록한 **개발서버의 ssh-key** 선택
+
+_ssh-key 선택까지 했는데 Repository URL에 빨간 글씨로 뜬 에러가 사라지지 않아도 일단 무시하고 넘어간다._
+
+- Branches to build: github repository의 **branch name** 입력
+- Script Path: 본인 프로젝트의 **`jenkins file` 경로** 입력 (프로젝트 폴더가 루트, 마지막에 jenkinsfile까지 포함)
+
+<Image src={"/jenkins/pipeline-configure2.png"} width={800} height={340} />
+
+모두 입력 후 **저장**을 클릭하여 파이프라인을 등록하자.
+
+## Git Verification
+
+파이프라인 등록 단계에서 **Repository URL**에서 빨간 글씨의 에러가 났었다.
+그 이유는 `jenkins`가 github과 ssh 통신을 하는데 실패하기 때문에 뜨는 것이다.
+이 문제를 해결해 보자.
+
+- **메인 화면 - Jenjins 관리 - Security - Security**
+
+<Image src={"/jenkins/jenkins-security.png"} width={800} height={340} />
+
+클릭하여 이동하면 보안에 관련한 여러 값들을 설정할 수 있는 페이지로 전환된다.
+다른 것은 건드릴 필요가 없고 **Git Host Key Verification Configuration** 항목만 찾으면 된다.
+
+<Image src={"/jenkins/git-verification.png"} width={800} height={340} />
+
+- Host Key Verification Strategy: **No verification** 선택
+
+**Save** 버튼을 클릭하여 저장한다.
+
+그리고 다시 **메인화면 - 생성한 pipeline - 구성**으로 이동한 뒤 **Repository URL**에 대해 발생한 에러를 다시 보면 없어졌을 것이다.
+
+끝.

@@ -1,0 +1,96 @@
+# Ubuntu에서 복수 계정 SSH 사용
+
+ubuntu에서 github 공용 계정을 ssh로 사용하다가 개인 계정도 사용해야하는 상황이 생겨서, 개인 계정에 대한 ssh-key를 생성하고 config 파일에 등록한 후, `git push`를 했는데 **permission denied publickey** 에러가 발생했다.
+
+복수의 계정을 ssh 접속하여 관리하는 방법을 알아보자.
+
+## ssh-key 생성
+
+ssh 접속 등록을 하기 위해서는 당연히 `ssh-key`가 필요하다. ssh 통신을 하려고 하는 github 계정에 대한 ssh-key를 생성해주자. 이에 대한 내용은 전에 포스팅한 글이 있기 때문에 링크를 걸어 놓겠다. 참고해주기 바란다.
+
+아래 글을 참고하여 ssh-key를 생성한다면 **_공개키 github에 등록_**까지만 진행하고 다시 돌아오면 된다. **ssh 접속 설정은 조금 바뀌기 때문에 이 글에 적는 방법으로 진행하기 바란다.**
+
+import { Callout } from "nextra-theme-docs";
+import Link from "next/link";
+
+<Callout>
+  <Link
+    href="https://gtengine.vercel.app/dev-ops/ubuntu/ssh/set-ssh-for-github#ssh-key-%EC%83%9D%EC%84%B1"
+    passHref
+    legacyBehavior
+  >
+    <a target="_blank">SSH key 생성 및 github에 등록</a>
+  </Link>
+</Callout>
+
+## 복수 계정 ssh 접속 설정
+
+host에 각 계정에 대한 ssh key pair를 생성하고 github에 모두 등록했다면, 이제 config 파일을 설정해 주어야 한다.
+
+명령어를 통해 config 파일을 열고,
+
+```bash
+vi ~/.ssh/config
+```
+
+각 계정에 대한 정보를 입력해주자.
+
+- HOST : 이 부분을 잘 봐두어야 한다. 추후 ssh 통신 시, 계정의 remote url을 이 값으로 사용한다.
+- HOSTNAME : github.com
+- IdentityFile : 위에서 생성한 ssh key pair 중 **public key 경로**
+- User : 사용자 명시 (보통 `git`으로 작성. 다른 값으로 작성해줘도 무방함)
+
+```bash filename="~/.ssh/config"
+HOST github-lemon
+    HostName github.com
+    IdentityFile ~/.ssh/lemon
+    User lemon
+
+HOST github-mgt
+    HostName github.com
+    IdentityFile ~/.ssh/mgt
+    User mgt
+```
+
+## ssh 통신 테스트
+
+config 파일 설정까지 끝났다면 사전 준비는 끝났다. 정상적으로 연결이 되는지 테스트를 해본다.
+
+ssh 통신 테스트 코드는
+
+```bash
+ssh -T git@github.com
+```
+
+이지만 위 코드로 테스트를 하면 **permission denied** 에러가 또 발생할 것이다. 그 이유는 **HOST** 값을 정확히 입력해주지 않았기 때문이다.
+
+git repository url에서, `github.com` 부분이 바로 **HOST**를 의미하는 자리이다. 이 부분을 위에서 config 파일에 정의해 둔 **HOST** 값으로 바꿔주자.
+
+```bash
+ssh -T git@github-mgt
+```
+
+```bash
+ssh -T git@github-lemon
+```
+
+계정의 git username이 뜨면서 성공적으로 인증되었다는 메세지가 나온다면 정상적으로 설정이 완료된 것이다.
+
+```bash
+# Hi gtengine! You've successfully authenticated, but GitHub does not provide shell access.
+# Hi LemonTree1420! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+이제 열심히 pull, push 하면 된다.
+
+## git clone, pull, push
+
+`git clone` 할 때에도 테스트한 것과 마찬가지로 remote url에서 **_github.com_**을 본인이 설정해 둔 **HOST**값으로 바꿔주면 된다.
+
+```bash
+git clone git@github-mgt:gtengine/nextra.git
+```
+
+그 후 `git pull`과 `git push`도 정상적으로 동작할 것이다.
+
+끝.

@@ -1,0 +1,67 @@
+# 인증키 등록
+
+플러그인 설치 후에는 필요한 인증 설정을 해주어야 한다. 아무런 인증 없이 `github`, `aws` 등에 접근할 수도 없거니와 그렇게 했다고 한다면 해킹해 달라고 하는 것과 같다.
+따라서 `ssh-key`, `secret-key`와 같은 private key를 jenkins에 등록하여 사용해야 한다.
+
+## 개발서버 ssh-key 등록
+
+- **메인 화면 - Jenkins 관리 - Security - Credentials**로 이동한다.
+
+import Image from "components/image/image.tsx";
+
+<Image src={"/jenkins/jenkins-credential-1.png"} width={800} height={340} />
+
+- **Stores scoped to Jenkins - System**을 클릭한다.
+
+<Image src={"/jenkins/jenkins-credential-2.png"} width={800} height={340} />
+
+- **System - Global credentials**를 클릭한다.
+
+<Image src={"/jenkins/jenkins-credential-3.png"} width={800} height={340} />
+
+- 우측 상단의 **+ Add Credentials**를 클릭한다.
+
+<Image src={"/jenkins/jenkins-credential-4.png"} width={800} height={340} />
+
+- 다음과 같은 화면이 뜨는데 각 항목에 맞는 입력을 해주어야 한다.
+
+<Image src={"/jenkins/jenkins-credential-5.png"} width={800} height={340} />
+
+- Kind : **SSH Username with private key**
+- Scope: **Global** (프로젝트 배포 목적)
+- ID: 본인이 추후에도 알아보기 쉽도록 정하면 된다.
+- Description: ID와 마찬가지
+- Username: ID와 마찬가지
+- **Private Key - Enter directly**를 체크하면 텍스트 입력창이 열리는데 **Add**를 클릭하고 본인의 서버의 `private ssh key`를 입력하면 된다.
+  - `private ssh key`를 확인하는 방법은 터미널에 명령어를 입력하면 된다.
+  ```sh
+  cat ~/.ssh/본인의 SSH KEY 파일명
+  ```
+  출력된 내용을 복사해서 붙여넣자.
+
+여기까지 입력했다면 아래의 **Create** 버튼을 클릭하여 인증을 생성한다.
+
+_개발서버의 `ssh-key`를 github에 등록해 주는 것도 잊지 말고 해준다. [이 글 참고.](https://gtengine.vercel.app/dev-ops/ubuntu/ssh/set-ssh-for-github#%EA%B3%B5%EA%B0%9C%ED%82%A4-github%EC%97%90-%EB%93%B1%EB%A1%9D)_
+
+## AWS secret-key 등록
+
+나는 개발서버와 배포서버를 `aws`에서 사용하고 있다. 따라서, `jenkins`가 `aws`에 접근할 수 있도록 인증키를 등록해주자.
+
+키를 등록하기 위한 절차는 위에서 했던 `ssh-key`등록과 같다.
+
+<Image src={"/jenkins/jenkins-aws-key.png"} width={800} height={340} />
+
+- Kind : **AWS Credentials**
+- Scope: **Global** (프로젝트 배포 목적)
+- ID: 본인이 추후에도 알아보기 쉽도록 정하면 된다.
+- Description: ID와 마찬가지
+- Access Key ID : AWS 루트 계정 또는 IAM 계정의 Access key ID.
+- Secret Access Key : 위의 Access Key ID에 해당하는 Secret Access Key.
+
+고급에서 다룰만한 설정은 따로 해주지 않았기 때문에 고급은 건드리지 않겠다.
+
+모두 입력했다면 **Create** 버튼을 클릭하여 생성한다.
+
+---
+
+[배포서버 설정에서 계속...](https://gtengine.vercel.app/dev-ops/jenkins/set-deploy-server)

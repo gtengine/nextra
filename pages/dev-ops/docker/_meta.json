@@ -1,0 +1,4 @@
+{
+  "install-docker": "Docker 설치",
+  "post-installation": "User group 설정"
+}

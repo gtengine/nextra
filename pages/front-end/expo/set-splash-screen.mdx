@@ -1,0 +1,74 @@
+# Splash 화면 설정
+
+splash 화면이란 앱이 로딩되는 동안 표시되는 화면이다. 앱의 로딩이 끝나고 사용할 준비가 끝나면 숨겨지면서 앱의 메인화면으로 바뀌는 것을 많이 보았을 것이다.
+
+## 이미지 설정
+
+**expo에서는 `/app.json` 파일에서 `splash.image` 속성에 splash 화면으로 사용할 이미지 경로를 입력하여 설정할 수 있다.**
+
+expo 프로젝트를 생성하면 `./assets/splash.png`로 기본 설정되어 있다.
+
+```json {3} filename="app.json"
+{
+  "splash": {
+    "image": "./assets/mkarina-0.jpg", // splash image path
+    "resizeMode": "contain",
+    "backgroundColor": "#ffffff"
+  }
+}
+```
+
+## 유지 시간 설정
+
+앱의 로딩이 너무 빨리 끝나서 splash 화면이 잘 보이지 않을 수 있다.
+이런 경우 splash 화면을 어느 정도 유지시킨 후 메인 화면으로 넘어가도록 **유지시간을 설정할 수 있다.**
+
+위 기능을 구현하기 위한 라이브러리를 설치하자.
+
+```bash
+npx expo install expo-splash-screen
+```
+
+`/App.js` 파일에서 `preventAutoHideAsync()`를 통해 자동 숨김을 해제하고, 숨기는 시점을 5초 뒤로 설정한다.
+
+```js filename="App.js"
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync();
+setTimeout(SplashScreen.hideAsync, 5000);
+```
+
+그런데 설정한 splash 이미지가 화면 전체를 덮는 것이 아니거나, 디바이스의 해상도 차이에 따라 splash 이미지로 덮이지 않는 부분이 하얗게 남아 부자연스러움을 연출할 수 있다.
+이를 해결하기 위해 `backgroundColor`를 본인이 설정한 splash 화면에 어울리는 색으로 수정해 주자.
+
+## 배경 색 설정
+
+배경 색 또한 `/app.json`에서 설정할 수 있다. `splash.backgroundColor`에 수정하고 싶은 색의 코드를 입력해 주면 된다.
+
+```json {5} filename="app.json"
+{
+  "splash": {
+    "image": "./assets/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#25292e" // splash background-color
+  }
+}
+```
+
+## 추가. 아이콘 설정
+
+앱 개발이 끝나고 배포를 하는데에 아이콘 역시 빼놓을 수 없는 중요한 포인트이다.
+
+아이콘 역시 `/app.json` 파일에서 `icon` 속성에 사용할 이미지 경로를 입력하여 설정할 수 있다.
+
+```json
+{
+  "icon": "./assets/icon.png"
+}
+```
+
+아이콘이 제대로 출력되는지 확인은 **Expo Go** 어플에서 개발자 도구를 키면 확인할 수 있다.
+
+_Expo Go에서 개발자 도구를 키는 방법은 손가락 세 개로 화면을 터치하고 있으면 열린다. 한 개도 안되고 두 개도 안된다... 네 개도 안된다..._
+
+끝.
